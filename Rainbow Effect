@@ -1,0 +1,52 @@
+#include <Adafruit_NeoPixel.h>
+
+#define LED_PIN 6
+#define LED_COUNT 60
+
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+void setup() {
+  strip.begin();
+  strip.show(); // Initialize all pixels to off
+}
+
+void loop() {
+  rainbowWheelWithSparkle(20, 10); // Rainbow wheel animation with a sparkle every 10th LED, and a 20ms delay between frames
+}
+
+void rainbowWheelWithSparkle(uint8_t wait, uint8_t sparkleInterval) {
+  // Generate rainbow colors across the whole strip
+  for (int i = 0; i < strip.numPixels(); i++) {
+    int hue = map(i, 0, strip.numPixels(), 0, 255);
+    strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(hue, 255, 255)));
+  }
+  
+  // Create a moving rainbow wheel effect
+  for (int j = 0; j < 256; j++) {
+    for (int i = 0; i < strip.numPixels(); i++) {
+      int wheelPos = (i * 256 / strip.numPixels()) + j;
+      strip.setPixelColor(i, wheel(wheelPos));
+    }
+    
+    // Add a sparkle effect every sparkleInterval LEDs
+    if (j % sparkleInterval == 0) {
+      int sparkleLed = random(strip.numPixels());
+      strip.setPixelColor(sparkleLed, strip.Color(255, 255, 255));
+    }
+    
+    strip.show();
+    delay(wait);
+  }
+}
+
+uint32_t wheel(byte pos) {
+  if (pos < 85) {
+    return strip.gamma32(strip.Color(pos * 3, 255 - pos * 3, 0));
+  } else if (pos < 170) {
+    pos -= 85;
+    return strip.gamma32(strip.Color(255 - pos * 3, 0, pos * 3));
+  } else {
+    pos -= 170;
+    return strip.gamma32(strip.Color(0, pos * 3, 255 - pos * 3));
+  }
+}
